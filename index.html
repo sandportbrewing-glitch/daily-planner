@@ -393,7 +393,7 @@ import { getFirestore, doc, setDoc, onSnapshot }
 
 const firebaseConfig = {
   apiKey: "AIzaSyD7J13tS6XlGmLkYFSXQMTLYVNtU0zjzE0",
-  authDomain: "toon-planner-20d30.firebaseapp.com",
+  authDomain: "sandportbrewing-glitch.github.io",
   projectId: "toon-planner-20d30",
   storageBucket: "toon-planner-20d30.firebasestorage.app",
   messagingSenderId: "950073029127",
@@ -424,8 +424,12 @@ document.getElementById('login-btn').onclick = async () => {
   document.getElementById('login-status').textContent='กำลังเข้าสู่ระบบ...';
   try{
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if(isMobile){ await signInWithRedirect(auth,provider); }
-    else { await signInWithPopup(auth,provider); }
+    if(isMobile){ 
+      provider.setCustomParameters({prompt:'select_account'});
+      await signInWithRedirect(auth,provider); 
+    } else { 
+      await signInWithPopup(auth,provider); 
+    }
   } catch(e){ document.getElementById('login-status').textContent='เกิดข้อผิดพลาด ลองใหม่'; }
 };
 
