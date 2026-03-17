@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>วางแผนชีวิตประจำวัน</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#1D9E75;--accent-light:#E1F5EE;--accent-dark:#0F6E56;--bg:#ffffff;--bg2:#F1EFE8;--bg3:#f8f8f5;--text:#1a1a1a;--text2:#666;--text3:#999;--border:#e0ddd5;--border2:#ccc;--radius:12px;--radius-sm:8px}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1a1a;--bg2:#242424;--bg3:#2a2a2a;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:#333;--border2:#444}}
+body{font-family:'Noto Sans Thai',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;padding:1rem}
+.app{max-width:700px;margin:0 auto}
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:1.5rem;text-align:center}
+.login-title{font-size:26px;font-weight:500}
+.login-sub{font-size:14px;color:var(--text2);max-width:280px;line-height:1.6}
+.google-btn{display:flex;align-items:center;gap:12px;padding:12px 24px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;font-size:15px;font-family:'Noto Sans Thai',sans-serif;color:var(--text);transition:all 0.15s;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.google-btn:hover{box-shadow:0 2px 8px rgba(0,0,0,0.12);transform:translateY(-1px)}
+.google-logo{width:20px;height:20px}
+.loading-txt{font-size:14px;color:var(--text2)}
+#main-app{display:none}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding:0 0.25rem}
+.user-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border)}
+.user-name{font-size:13px;color:var(--text2)}
+.signout-btn{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px}
+.signout-btn:hover{background:var(--bg2);color:var(--text)}
+.score-ring{width:52px;height:52px;position:relative;flex-shrink:0}
+.score-ring svg{width:100%;height:100%}
+.score-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent)}
+.date-label{font-family:'Space Mono',monospace;font-size:11px;color:var(--text2);letter-spacing:1px;margin-bottom:2px}
+.day-title{font-size:20px;font-weight:500;color:var(--text)}
+.sync-bar{font-size:11px;color:var(--text3);text-align:right;margin-bottom:8px;min-height:16px}
+.sync-bar.syncing{color:var(--accent)}
+.sections{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.section-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem}
+.section-card.full{grid-column:1/-1}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
+.section-title{font-size:13px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px}
+.add-btn{width:22px;height:22px;border-radius:50%;border:0.5px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2);line-height:1}
+.add-btn:hover{background:var(--bg2)}
+.task-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid var(--border)}
+.task-item:last-child{border-bottom:none}
+.task-check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;cursor:pointer}
+.task-check.done{background:var(--accent);border-color:var(--accent)}
+.task-check.done::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff}
+.task-text{font-size:14px;color:var(--text);flex:1;cursor:pointer}
+.task-text.done{text-decoration:line-through;color:var(--text3)}
+.task-tag{font-size:11px;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.tag-work{background:#E6F1FB;color:#185FA5}.tag-health{background:#EAF3DE;color:#3B6D11}.tag-personal{background:#EEEDFE;color:#534AB7}.tag-focus{background:#FAEEDA;color:#854F0B}
+.task-del{font-size:16px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0 2px;opacity:0;transition:opacity 0.15s}
+.task-item:hover .task-del{opacity:1}
+.time-block{display:flex;gap:10px;padding:5px 0;align-items:flex-start;border-bottom:0.5px solid var(--border)}
+.time-block:last-child{border-bottom:none}
+.tb-time{font-family:'Space Mono',monospace;font-size:11px;color:var(--text3);min-width:42px;padding-top:2px}
+.tb-bar{width:3px;border-radius:2px;min-height:36px;flex-shrink:0;margin-top:2px}
+.tb-title{font-size:13px;font-weight:500;color:var(--text)}.tb-sub{font-size:12px;color:var(--text2);margin-top:1px}
+.tb-now{background:var(--accent)}.tb-past{background:var(--border)}.tb-future{background:var(--border2)}
+.habit-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border)}
+.habit-row:last-child{border-bottom:none}
+.habit-name{font-size:13px;color:var(--text);flex:1}
+.habit-dots{display:flex;gap:4px}
+.h-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border2);cursor:pointer;transition:all 0.15s}
+.h-dot.filled{background:var(--accent);border-color:var(--accent)}
+.focus-block{padding:0.75rem;background:var(--accent-light);border-radius:var(--radius-sm);border:0.5px solid #9FE1CB;margin-top:0.25rem}
+.focus-timer{font-family:'Space Mono',monospace;font-size:28px;font-weight:700;color:var(--accent-dark);text-align:center;margin:0.5rem 0}
+.focus-label{font-size:12px;color:var(--accent-dark);text-align:center;opacity:0.8}
+.focus-btns{display:flex;gap:8px;justify-content:center;margin-top:0.75rem}
+.f-btn{padding:5px 16px;border-radius:20px;border:1.5px solid var(--accent);background:transparent;color:var(--accent-dark);font-size:13px;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;transition:all 0.15s}
+.f-btn:hover,.f-btn.active{background:var(--accent);color:#fff}
+.mood-row{display:flex;gap:6px;justify-content:space-around;padding:0.5rem 0}
+.mood-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:transparent;cursor:pointer;transition:all 0.15s;flex:1}
+.mood-btn:hover,.mood-btn.sel{background:var(--accent-light);border-color:#9FE1CB}
+.mood-icon{font-size:20px}.mood-text{font-size:11px;color:var(--text2)}
+.input-row{display:flex;gap:8px;margin-top:10px}
+.input-row input{flex:1;padding:7px 12px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);font-size:13px;font-family:'Noto Sans Thai',sans-serif;color:var(--text);outline:none}
+.input-row input:focus{border-color:var(--accent)}
+.input-row button{padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:'Noto Sans Thai',sans-serif}
+.tag-select{padding:7px 8px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);font-size:13px;font-family:'Noto Sans Thai',sans-serif;color:var(--text);outline:none}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat-card{background:var(--bg2);border-radius:var(--radius-sm);padding:10px;text-align:center}
+.stat-val{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--text)}
+.stat-lbl{font-size:11px;color:var(--text2);margin-top:2px}
+@media(max-width:500px){.sections{grid-template-columns:1fr}.section-card.full{grid-column:1}.mood-btn{padding:6px 4px}}
+</style>
+</head>
+<body>
+<div id="login-screen">
+  <div><div style="font-size:36px;margin-bottom:0.5rem">📅</div><div class="login-title">วางแผนชีวิตประจำวัน</div></div>
+  <div class="login-sub">ล็อกอินด้วย Google เพื่อ sync ข้อมูลข้ามทุกอุปกรณ์</div>
+  <button class="google-btn" id="login-btn">
+    <svg class="google-logo" viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+    </svg>
+    เข้าสู่ระบบด้วย Google
+  </button>
+  <div class="loading-txt" id="login-status"></div>
+</div>
+
+<div id="main-app">
+  <div class="app">
+    <div class="top-bar">
+      <div><div class="date-label" id="date-label"></div><div class="day-title">วันของฉัน</div></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <img class="user-avatar" id="user-avatar" src="" alt=""/>
+          <div><div class="user-name" id="user-name"></div><button class="signout-btn" id="signout-btn">ออกจากระบบ</button></div>
+        </div>
+        <div class="score-ring">
+          <svg viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="22" fill="none" stroke="var(--border)" stroke-width="3"/>
+            <circle id="score-arc" cx="26" cy="26" r="22" fill="none" stroke="#1D9E75" stroke-width="3" stroke-dasharray="138.2" stroke-dashoffset="138.2" stroke-linecap="round" transform="rotate(-90 26 26)" style="transition:stroke-dashoffset 0.5s"/>
+          </svg>
+          <div class="score-num" id="score-num">0%</div>
+        </div>
+      </div>
+    </div>
+    <div class="sync-bar" id="sync-bar"></div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-val" id="st-done">0</div><div class="stat-lbl">เสร็จแล้ว</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-left">0</div><div class="stat-lbl">เหลืออยู่</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-habits">0/5</div><div class="stat-lbl">นิสัย</div></div>
+    </div>
+    <div class="sections">
+      <div class="section-card full">
+        <div class="section-head"><span class="section-title">งานวันนี้</span><button class="add-btn" id="show-add-btn">+</button></div>
+        <div id="task-list"></div>
+        <div class="input-row" id="add-task-row" style="display:none">
+          <input id="new-task-input" placeholder="เพิ่มงานใหม่..."/>
+          <select class="tag-select" id="new-task-tag">
+            <option value="personal">ส่วนตัว</option><option value="work">งาน</option><option value="health">สุขภาพ</option><option value="focus">โฟกัส</option>
+          </select>
+          <button id="add-task-btn">เพิ่ม</button>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-head"><span class="section-title">ตารางวัน</span></div>
+        <div id="schedule-list"></div>
+      </div>
+      <div class="section-card">
+        <div class="section-head"><span class="section-title">อารมณ์ตอนนี้</span></div>
+        <div class="mood-row" id="mood-row">
+          <button class="mood-btn" data-mood="มาก"><span class="mood-icon">😄</span><span class="mood-text">มาก</span></button>
+          <button class="mood-btn" data-mood="ดี"><span class="mood-icon">🙂</span><span class="mood-text">ดี</span></button>
+          <button class="mood-btn" data-mood="กลางๆ"><span class="mood-icon">😐</span><span class="mood-text">กลางๆ</span></button>
+          <button class="mood-btn" data-mood="เหนื่อย"><span class="mood-icon">😔</span><span class="mood-text">เหนื่อย</span></button>
+        </div>
+      </div>
+      <div class="section-card full">
+        <div class="section-head"><span class="section-title">โฟกัส (Pomodoro)</span></div>
+        <div class="focus-block">
+          <div class="focus-label" id="focus-label">พักผ่อนก่อน แล้วกด "เริ่ม"</div>
+          <div class="focus-timer" id="focus-timer">25:00</div>
+          <div class="focus-btns"><button class="f-btn" id="f-start">เริ่ม</button><button class="f-btn" id="f-reset">รีเซ็ต</button></div>
+        </div>
+      </div>
+      <div class="section-card full">
+        <div class="section-head"><span class="section-title">นิสัยประจำวัน</span></div>
+        <div id="habit-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as fbSignOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCe1Cp6XCdiil4gRiRIK-LNOsb47COZp8c",
+  authDomain: "work-planner-863c1.firebaseapp.com",
+  projectId: "work-planner-863c1",
+  storageBucket: "work-planner-863c1.firebasestorage.app",
+  messagingSenderId: "927229287661",
+  appId: "1:927229287661:web:6f57f0f7b65c10735500e4"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+const provider = new GoogleAuthProvider();
+
+let currentUser = null, unsubscribe = null;
+const todayKey = new Date().toISOString().slice(0,10);
+const tagLabel = {work:'งาน',health:'สุขภาพ',personal:'ส่วนตัว',focus:'โฟกัส'};
+
+const defaultData = () => ({
+  tasks:[
+    {text:'ตรวจอีเมลและวางแผนงาน',done:false,tag:'work'},
+    {text:'ออกกำลังกาย 30 นาที',done:false,tag:'health'},
+    {text:'อ่านหนังสือ 20 หน้า',done:false,tag:'personal'},
+    {text:'เตรียมรายงานสรุป',done:false,tag:'focus'},
+  ],
+  habits:[
+    {name:'ดื่มน้ำ 8 แก้ว',done:[0,0,0,0,0,0,0]},
+    {name:'ออกกำลังกาย',done:[0,0,0,0,0,0,0]},
+    {name:'อ่านหนังสือ',done:[0,0,0,0,0,0,0]},
+    {name:'นอนก่อน 23:00',done:[0,0,0,0,0,0,0]},
+    {name:'เขียน journal',done:[0,0,0,0,0,0,0]},
+  ],
+  mood:''
+});
+let data = defaultData();
+
+document.getElementById('login-btn').onclick = async () => {
+  document.getElementById('login-status').textContent = 'กำลังเข้าสู่ระบบ...';
+  try { await signInWithPopup(auth, provider); }
+  catch(e) { document.getElementById('login-status').textContent = 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'; }
+};
+document.getElementById('signout-btn').onclick = () => fbSignOut(auth);
+
+onAuthStateChanged(auth, user => {
+  if(user){
+    currentUser = user;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('main-app').style.display='block';
+    document.getElementById('user-avatar').src = user.photoURL||'';
+    document.getElementById('user-name').textContent = user.displayName||user.email;
+    setupDate(); setupSchedule(); subscribeData();
+  } else {
+    currentUser = null;
+    if(unsubscribe){ unsubscribe(); unsubscribe=null; }
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('main-app').style.display='none';
+  }
+});
+
+function userDoc(){ return doc(db,'users',currentUser.uid,'days',todayKey); }
+
+function subscribeData(){
+  setSyncBar('กำลังโหลด...', true);
+  unsubscribe = onSnapshot(userDoc(), snap => {
+    data = snap.exists() ? snap.data() : defaultData();
+    renderTasks(); renderHabits(); restoreMood();
+    setSyncBar('ซิงค์แล้ว ✓'); setTimeout(()=>setSyncBar(''),2000);
+  });
+}
+
+async function save(){
+  if(!currentUser) return;
+  setSyncBar('กำลังบันทึก...', true);
+  try { await setDoc(userDoc(), data); setSyncBar('บันทึกแล้ว ✓'); setTimeout(()=>setSyncBar(''),2000); }
+  catch(e){ setSyncBar('บันทึกไม่สำเร็จ'); }
+}
+
+function setSyncBar(txt, syncing=false){
+  const el=document.getElementById('sync-bar');
+  el.textContent=txt; el.className='sync-bar'+(syncing?' syncing':'');
+}
+
+function setupDate(){
+  const days=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+  const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const n=new Date();
+  document.getElementById('date-label').textContent=`วัน${days[n.getDay()]} ${n.getDate()} ${months[n.getMonth()]} ${n.getFullYear()+543}`;
+}
+
+function renderTasks(){
+  document.getElementById('task-list').innerHTML=(data.tasks||[]).map((t,i)=>`
+    <div class="task-item">
+      <div class="task-check${t.done?' done':''}" data-toggle="${i}"></div>
+      <span class="task-text${t.done?' done':''}" data-toggle="${i}">${t.text}</span>
+      <span class="task-tag tag-${t.tag}">${tagLabel[t.tag]||t.tag}</span>
+      <button class="task-del" data-del="${i}">×</button>
+    </div>`).join('');
+  document.querySelectorAll('[data-toggle]').forEach(el=>el.onclick=()=>{
+    const i=+el.dataset.toggle; data.tasks[i].done=!data.tasks[i].done; renderTasks(); save();
+  });
+  document.querySelectorAll('[data-del]').forEach(el=>el.onclick=e=>{
+    e.stopPropagation(); data.tasks.splice(+el.dataset.del,1); renderTasks(); save();
+  });
+  updateScore();
+}
+
+document.getElementById('show-add-btn').onclick = () => {
+  const r=document.getElementById('add-task-row');
+  r.style.display=r.style.display==='none'?'flex':'none';
+  if(r.style.display==='flex') document.getElementById('new-task-input').focus();
+};
+document.getElementById('new-task-input').onkeydown = e => { if(e.key==='Enter') addTask(); };
+document.getElementById('add-task-btn').onclick = addTask;
+
+function addTask(){
+  const inp=document.getElementById('new-task-input');
+  const tag=document.getElementById('new-task-tag').value;
+  if(!inp.value.trim()) return;
+  data.tasks.push({text:inp.value.trim(),done:false,tag});
+  inp.value=''; document.getElementById('add-task-row').style.display='none';
+  renderTasks(); save();
+}
+
+function setupSchedule(){
+  const s=[
+    {time:'08:00',title:'ออกกำลังกาย',sub:'ยิม / วิ่ง',type:'past'},
+    {time:'09:30',title:'ทำงานหนัก',sub:'งานที่ต้องโฟกัส',type:'now'},
+    {time:'12:00',title:'พักกลางวัน',sub:'กินข้าว + พักผ่อน',type:'future'},
+    {time:'14:00',title:'ประชุม / ตอบงาน',sub:'email และ meetings',type:'future'},
+    {time:'18:00',title:'เวลาส่วนตัว',sub:'อ่านหนังสือ / ผ่อนคลาย',type:'future'},
+    {time:'22:00',title:'นอนหลับ',sub:'วางโทรศัพท์ ปิดไฟ',type:'future'},
+  ];
+  document.getElementById('schedule-list').innerHTML=s.map(x=>`
+    <div class="time-block">
+      <span class="tb-time">${x.time}</span>
+      <div class="tb-bar tb-${x.type}"></div>
+      <div style="flex:1"><div class="tb-title">${x.title}</div><div class="tb-sub">${x.sub}</div></div>
+    </div>`).join('');
+}
+
+function renderHabits(){
+  document.getElementById('habit-list').innerHTML=(data.habits||[]).map((h,hi)=>`
+    <div class="habit-row">
+      <span class="habit-name">${h.name}</span>
+      <div class="habit-dots">${(h.done||[]).map((d,di)=>`
+        <div class="h-dot${d===1?' filled':''}" data-hi="${hi}" data-di="${di}"></div>`).join('')}
+      </div>
+    </div>`).join('');
+  document.querySelectorAll('.h-dot').forEach(el=>el.onclick=()=>{
+    const hi=+el.dataset.hi,di=+el.dataset.di;
+    data.habits[hi].done[di]=data.habits[hi].done[di]===0?1:0;
+    renderHabits(); save();
+  });
+  updateScore();
+}
+
+function updateScore(){
+  const done=(data.tasks||[]).filter(t=>t.done).length;
+  const total=(data.tasks||[]).length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('score-num').textContent=pct+'%';
+  document.getElementById('score-arc').style.strokeDashoffset=138.2-(138.2*pct/100);
+  document.getElementById('st-done').textContent=done;
+  document.getElementById('st-left').textContent=total-done;
+  const todayH=(data.habits||[]).filter(h=>(h.done||[])[6]===1).length;
+  document.getElementById('st-habits').textContent=todayH+'/'+(data.habits||[]).length;
+}
+
+document.querySelectorAll('.mood-btn').forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel'); data.mood=btn.dataset.mood; save();
+});
+function restoreMood(){
+  document.querySelectorAll('.mood-btn').forEach(btn=>{
+    btn.classList.toggle('sel', btn.dataset.mood===data.mood);
+  });
+}
+
+let timerSec=25*60,timerRunning=false,timerInt=null,isBreak=false;
+document.getElementById('f-start').onclick = () => {
+  if(timerRunning){
+    clearInterval(timerInt); timerRunning=false;
+    document.getElementById('f-start').textContent='เริ่ม';
+    document.getElementById('f-start').classList.remove('active');
+  } else {
+    timerRunning=true;
+    document.getElementById('f-start').textContent='หยุด';
+    document.getElementById('f-start').classList.add('active');
+    document.getElementById('focus-label').textContent=isBreak?'พักเบรก...':'กำลังโฟกัส...';
+    timerInt=setInterval(()=>{
+      timerSec--;
+      if(timerSec<0){
+        clearInterval(timerInt); timerRunning=false;
+        isBreak=!isBreak; timerSec=isBreak?5*60:25*60;
+        document.getElementById('f-start').textContent='เริ่ม';
+        document.getElementById('f-start').classList.remove('active');
+        document.getElementById('focus-label').textContent=isBreak?'พัก 5 นาที ✓':'รอบต่อไป พร้อมแล้ว?';
+      }
+      updateTimer();
+    },1000);
+  }
+};
+document.getElementById('f-reset').onclick = () => {
+  clearInterval(timerInt); timerRunning=false; isBreak=false; timerSec=25*60;
+  document.getElementById('f-start').textContent='เริ่ม';
+  document.getElementById('f-start').classList.remove('active');
+  document.getElementById('focus-label').textContent='พักผ่อนก่อน แล้วกด "เริ่ม"';
+  updateTimer();
+};
+function updateTimer(){
+  const m=Math.floor(timerSec/60),s=timerSec%60;
+  document.getElementById('focus-timer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+</script>
+</body>
+</html>
