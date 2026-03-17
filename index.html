@@ -214,6 +214,13 @@ body{font-family:'Noto Sans Thai',sans-serif;background:var(--bg3);color:var(--t
   .gantt-lcol,.gantt-label{width:100px}
 }
 </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="My Planner">
+  <meta name="theme-color" content="#1D9E75">
+  <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 
@@ -829,6 +836,15 @@ function renderGantt(){
     </div>`;
   }).join('');
   el.innerHTML=`<div class="gantt-hdr"><div class="gantt-lcol"></div><div class="gantt-dates">${hdrs}</div></div>${rows}`;
+}
+</script>
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js")
+      .then(()=>console.log("SW ok"))
+      .catch(e=>console.log("SW err",e));
+  });
 }
 </script>
 </body>
